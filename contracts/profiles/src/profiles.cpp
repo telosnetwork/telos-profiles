@@ -93,6 +93,7 @@ ACTION profiles::newprofile(name account, optional<string> display_name, optiona
     auto conf = configs.get();
     
     //emplace new profile
+    //ram payer: contract
     profs.emplace(get_self(), [&](auto& col) {
         col.account_name = account;
         col.display_name = (display_name) ? *display_name : account.to_string();
