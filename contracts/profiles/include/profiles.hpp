@@ -71,7 +71,7 @@ CONTRACT profiles : public contract {
     //auth: account
     ACTION delprofile(name account);
 
-    //======================== profile actions ========================
+    //======================== metadata actions ========================
 
     //write new metadata for a profile
     //auth: writer

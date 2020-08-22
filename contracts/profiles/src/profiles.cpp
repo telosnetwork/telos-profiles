@@ -214,7 +214,7 @@ ACTION profiles::delprofile(name account)
     profs.erase(prof);
 }
 
-//======================== profile actions ========================
+//======================== metadata actions ========================
 
 ACTION profiles::writemeta(name writer, name account, string data)
 {
