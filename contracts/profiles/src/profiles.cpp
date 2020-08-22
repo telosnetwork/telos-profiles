@@ -1,5 +1,13 @@
 #include <profiles.hpp>
 
+// ACTION profiles::delconf()
+// {
+//     config_singleton configs(get_self(), get_self().value);
+//     auto conf = configs.get();
+//     require_auth(conf.admin);
+//     configs.remove();
+// }
+
 //======================== config actions ========================
 
 ACTION profiles::init(string contract_name, string contract_version, name initial_admin)
@@ -73,6 +81,22 @@ ACTION profiles::setdefavatar(string new_default_avatar)
     //set config
     configs.set(conf, get_self());
 }
+
+// ACTION profiles::setmetalim(uint32_t new_metadata_limit)
+// {
+//     //open configs singleton
+//     config_singleton configs(get_self(), get_self().value);
+//     auto conf = configs.get();
+
+//     //authenticate
+//     require_auth(conf.admin);
+
+//     //update default avatar
+//     conf.max_metadata_limit = new_metadata_limit;
+
+//     //set config
+//     configs.set(conf, get_self());
+// }
 
 //======================== profile actions ========================
 
@@ -188,4 +212,50 @@ ACTION profiles::delprofile(name account)
 
     //erase profile
     profs.erase(prof);
+}
+
+//======================== metadata actions ========================
+
+ACTION profiles::writemeta(name writer, name account, string data)
+{
+    //authenticate
+    require_auth(writer);
+
+    //TODO: validate data length
+
+    //open profiles table, get profile
+    profiles_table profiles(get_self(), get_self().value);
+    auto& prof = profiles.get(account.value, "profile not found");
+
+    //open metadata table, find meta
+    metadata_table metadata(get_self(), writer.value);
+    auto meta_itr = metadata.find(account.value);
+
+    //if metadata not found
+    if (meta_itr == metadata.end()) {
+        //emplace new metadata
+        //ram payer: writer
+        metadata.emplace(writer, [&](auto& col) {
+            col.account = account;
+            col.data = data;
+        });
+    } else {
+        //overwrite existing metadata
+        metadata.modify(*meta_itr, same_payer, [&](auto& col) {
+            col.data = data;
+        });
+    }
+}
+
+ACTION profiles::delmeta(name writer, name account)
+{
+    //authenticate
+    require_auth(writer);
+
+    //open metadata table, find meta
+    metadata_table metadata(get_self(), writer.value);
+    auto& meta = metadata.get(account.value, "metadata not found");
+
+    //delete metadata
+    metadata.erase(meta);
 }
