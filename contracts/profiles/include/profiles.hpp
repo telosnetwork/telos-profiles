@@ -17,6 +17,8 @@ CONTRACT profiles : public contract {
     profiles(name self, name code, datastream<const char*> ds) : contract(self, code, ds) {};
     ~profiles() {};
 
+    // ACTION delconf();
+
     //======================== config actions ========================
 
     //intitialize the contract
@@ -34,6 +36,10 @@ CONTRACT profiles : public contract {
     //set a new default avatar
     //auth: admin
     ACTION setdefavatar(string new_default_avatar);
+
+    //set new max metadata character limit
+    //auth: admin
+    // ACTION setmetalim(uint32_t new_metadata_limit);
 
     //======================== profile actions ========================
 
@@ -65,22 +71,36 @@ CONTRACT profiles : public contract {
     //auth: account
     ACTION delprofile(name account);
 
+    //======================== profile actions ========================
+
+    //write new metadata for a profile
+    //auth: writer
+    ACTION writemeta(name writer, name account, string data);
+
+    //delete metadata from a profile
+    //auth: writer
+    ACTION delmeta(name writer, name account);
+
     //======================== contract tables ========================
 
     //config table
     //scope: self
+    //ram payer: contract
     TABLE config {
         string contract_name;
         string contract_version;
         name admin;
-        string default_avatar;
+        string default_avatar; //https://i.imgur.com/kZypAmC.png
+        // uint32_t max_metadata_limit;
 
-        EOSLIB_SERIALIZE(config, (contract_name)(contract_version)(admin)(default_avatar))
+        EOSLIB_SERIALIZE(config, (contract_name)(contract_version)(admin)
+            (default_avatar))
     };
-    typedef singleton<name("config"), config> config_singleton;
+    typedef singleton<"config"_n, config> config_singleton;
 
     //profiles table
     //scope: self
+    //ram payer: contract
     TABLE profile {
         name account_name;
         string display_name = "";
@@ -94,6 +114,19 @@ CONTRACT profiles : public contract {
         EOSLIB_SERIALIZE(profile, (account_name)(display_name)(avatar)
             (bio)(status)(is_verified))
     };
-    typedef multi_index<name("profiles"), profile> profiles_table;
+    typedef multi_index<"profiles"_n, profile> profiles_table;
+
+    //metadata table
+    //scope: writer
+    //ram payer: writer
+    TABLE metadatum {
+        name account;
+        string data; //json
+
+        uint64_t primary_key() const { return account.value; }
+
+        EOSLIB_SERIALIZE(metadatum, (account)(data))
+    };
+    typedef multi_index<"metadata"_n, metadatum> metadata_table;
 
 };

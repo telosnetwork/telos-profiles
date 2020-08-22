@@ -26,6 +26,20 @@
             ]
         },
         {
+            "name": "delmeta",
+            "base": "",
+            "fields": [
+                {
+                    "name": "writer",
+                    "type": "name"
+                },
+                {
+                    "name": "account",
+                    "type": "name"
+                }
+            ]
+        },
+        {
             "name": "delprofile",
             "base": "",
             "fields": [
@@ -106,6 +120,20 @@
                 {
                     "name": "initial_admin",
                     "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "metadatum",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
+                    "type": "name"
+                },
+                {
+                    "name": "data",
+                    "type": "string"
                 }
             ]
         },
@@ -200,9 +228,32 @@
                     "type": "name"
                 }
             ]
+        },
+        {
+            "name": "writemeta",
+            "base": "",
+            "fields": [
+                {
+                    "name": "writer",
+                    "type": "name"
+                },
+                {
+                    "name": "account",
+                    "type": "name"
+                },
+                {
+                    "name": "data",
+                    "type": "string"
+                }
+            ]
         }
     ],
     "actions": [
+        {
+            "name": "delmeta",
+            "type": "delmeta",
+            "ricardian_contract": ""
+        },
         {
             "name": "delprofile",
             "type": "delprofile",
@@ -257,12 +308,24 @@
             "name": "verify",
             "type": "verify",
             "ricardian_contract": ""
+        },
+        {
+            "name": "writemeta",
+            "type": "writemeta",
+            "ricardian_contract": ""
         }
     ],
     "tables": [
         {
             "name": "config",
             "type": "config",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "metadata",
+            "type": "metadatum",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
