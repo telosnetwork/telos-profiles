@@ -2,7 +2,7 @@
 //
 // @author Craig Branscom
 // @contract profiles
-// @version v0.2.0
+// @version v0.3.0
 
 #include <eosio/eosio.hpp>
 #include <eosio/singleton.hpp>
@@ -39,7 +39,7 @@ CONTRACT profiles : public contract {
 
     //set new max metadata character limit
     //auth: admin
-    // ACTION setmetalim(uint32_t new_metadata_limit);
+    ACTION setlength(name length_name, uint32_t new_length);
 
     //======================== profile actions ========================
 
@@ -91,10 +91,14 @@ CONTRACT profiles : public contract {
         string contract_version;
         name admin;
         string default_avatar; //https://i.imgur.com/kZypAmC.png
-        // uint32_t max_metadata_limit;
+        uint32_t max_display_name_length = 16;
+        uint32_t max_avatar_length = 64;
+        uint32_t max_bio_length = 256;
+        uint32_t max_status_length = 16;
 
         EOSLIB_SERIALIZE(config, (contract_name)(contract_version)(admin)
-            (default_avatar))
+            (default_avatar)(max_display_name_length)(max_avatar_length)
+            (max_bio_length)(max_status_length))
     };
     typedef singleton<"config"_n, config> config_singleton;
 
