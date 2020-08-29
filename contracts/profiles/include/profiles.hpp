@@ -81,7 +81,23 @@ CONTRACT profiles : public contract {
     //auth: writer
     ACTION delmeta(name writer, name account);
 
+    //======================== connection actions ========================
+
+    //make a new profile connection
+    //auth: from
+    ACTION connect(name from, name to);
+
+    //remove a profile connection
+    //auth: from
+    ACTION disconnect(name from, name to);
+
+    //======================== contract functions ========================
+
+    //retruns true of account has a profile
+    bool has_profile(name account);
+
     //======================== contract tables ========================
+
 
     //config table
     //scope: self
@@ -132,5 +148,27 @@ CONTRACT profiles : public contract {
         EOSLIB_SERIALIZE(metadatum, (account)(data))
     };
     typedef multi_index<"metadata"_n, metadatum> metadata_table;
+
+    //connections table
+    //scope: self
+    //ram payer: from
+    TABLE connection {
+        uint64_t connection_id;
+        name from;
+        name to;
+        time_point_sec connection_time;
+        
+        uint64_t primary_key() const { return connection_id; }
+        uint64_t by_from() const { return from.value; }
+        uint64_t by_to() const { return to.value; }
+        uint64_t by_time() const { return static_cast<uint64_t>(connection_time.utc_seconds); }
+
+        EOSLIB_SERIALIZE(connection, (connection_id)(from)(to)(connection_time))
+    };
+    typedef multi_index<"connections"_n, connection,
+        indexed_by<name("byfrom"), const_mem_fun<connection, uint64_t, &connection::by_from>>,
+        indexed_by<name("byto"), const_mem_fun<connection, uint64_t, &connection::by_to>>,
+        indexed_by<name("bytime"), const_mem_fun<connection, uint64_t, &connection::by_time>>
+    > connections_table;
 
 };
