@@ -317,3 +317,84 @@ ACTION profiles::delmeta(name writer, name account)
     //delete metadata
     metadata.erase(meta);
 }
+
+//======================== connection actions ========================
+
+ACTION profiles::connect(name from, name to)
+{
+    //authenticate
+    require_auth(from);
+
+    //validate
+    check(has_profile(from), "from account has no profile to connect");
+    check(has_profile(to), "to account has no profile to connect");
+
+    //open connections table, get by_from index, search for existing connection
+    connections_table connections(get_self(), get_self().value);
+    auto conns_by_from = connections.get_index<"byfrom"_n>();
+    auto by_from_itr = conns_by_from.lower_bound(from.value);
+    
+    //loop over connections
+    while (by_from_itr != conns_by_from.end()) {
+        //validate
+        check(by_from_itr->to.value != to.value, "connection already exists");
+
+        //iterate
+        by_from_itr++;
+    }
+
+    //emplace new connection
+    //ram payer: from
+    connections.emplace(get_self(), [&](auto& col) {
+        col.connection_id = connections.available_primary_key();
+        col.from = from;
+        col.to = to;
+        col.connection_time = time_point_sec(current_time_point());
+    });
+}
+
+ACTION profiles::disconnect(name from, name to)
+{
+    //authenticate
+    require_auth(from);
+
+    //open connections table, get by_from index, search for existing connection
+    connections_table connections(get_self(), get_self().value);
+    auto conns_by_from = connections.get_index<"byfrom"_n>();
+    auto by_from_itr = conns_by_from.lower_bound(from.value);
+
+    //validate
+    check(by_from_itr != conns_by_from.end(), "no connections to disconnect");
+
+    //initialize
+    bool found = false;
+    
+    //loop over connections until found or conn.from != from
+    while (!found) {
+        //if at end of table
+        if (by_from_itr == conns_by_from.end()) {
+            break;
+        }
+
+        //if connection found
+        if (by_from_itr->to.value == to.value) {
+            connections.erase(*by_from_itr);
+            found = true;
+        }
+
+        //iterate
+        by_from_itr++;
+    }
+    
+}
+
+//======================== contract functions ========================
+
+bool profiles::has_profile(name account)
+{
+    //open prifles table, find profile
+    profiles_table profs(get_self(), get_self().value);
+    auto prof_itr = profs.find(account.value);
+
+    return prof_itr != profs.end();
+}
